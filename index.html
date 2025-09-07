@@ -1,98 +1,123 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>할 일 목록</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>입장</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f8f9fa;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+    :root{
+      --duration: 5s; /* 애니메이션 + 사운드 길이 */
     }
-    .app {
-      background: white;
-      padding: 20px;
+
+    *{ box-sizing:border-box }
+    html,body{ height:100% }
+    body{
+      margin:0; background:#fff; color:#111; overflow:hidden;
+      display:grid; place-items:center; font-family: Tahoma, "MS Sans Serif", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+    }
+
+    .wrap{ position:relative; display:grid; place-items:center; min-height:100vh; width:100%; }
+
+    /* ✅ Windows 95 스타일 버튼 */
+    .btn95{
+      font-size: clamp(18px, 3.8vmin, 28px);
+      padding: .6em 1.2em;
+      background:#c0c0c0; color:#000;
+      border:2px solid #808080;            /* 어두운 테두리 */
+      border-right-color:#000;             /* 더 어둡게 */
+      border-bottom-color:#000;
+      box-shadow:
+        inset 2px 2px 0 #fff,              /* 좌상단 하이라이트 */
+        inset -2px -2px 0 #7f7f7f;         /* 우하단 음영 */
+      text-transform:none; letter-spacing:.02em;
+      cursor:pointer; user-select:none; position:relative; z-index:3;
+    }
+    .btn95:active{
+      box-shadow:
+        inset 2px 2px 0 #7f7f7f,
+        inset -2px -2px 0 #fff;            /* 눌렸을 때 반전 */
+      border-color:#000; border-right-color:#808080; border-bottom-color:#808080;
+    }
+    .btn95:focus-visible{ outline:1px dotted #000; outline-offset:2px }
+    body.start .btn95{ opacity:0; pointer-events:none; transition: opacity .35s ease; }
+
+    /* 🌈 무지개 원형 스펙트럼 */
+    .rainbow{
+      position:fixed; left:50%; top:50%; z-index:1; pointer-events:none;
+      width:200vmax; height:200vmax;
+      transform:translate(-50%, -50%);
+      background: conic-gradient(from -90deg at 50% 50%,
+        hsl(0 100% 55%) 0%,
+        hsl(24 100% 55%) 14.285%,
+        hsl(60 100% 55%) 28.57%,
+        hsl(120 100% 50%) 42.855%,
+        hsl(220 100% 60%) 57.14%,
+        hsl(275 100% 60%) 71.425%,
+        hsl(300 100% 60%) 85.71%,
+        hsl(360 100% 55%) 100%
+      );
+      filter: saturate(1.25) contrast(1.05);
+      clip-path: circle(0vmax at 50% 50%);
+    }
+    body.start .rainbow{ animation: reveal var(--duration) ease-in forwards; }
+    @keyframes reveal{ to{ clip-path: circle(200vmax at 50% 50%); } }
+
+    .core{ position:fixed; inset:0; display:none; place-items:center; z-index:2; pointer-events:none; }
+    body.start .core{ display:grid; }
+    .core::before{
+      content:""; width:36vmin; aspect-ratio:1; border-radius:50%;
+      background: radial-gradient(circle at 50% 45%, rgba(255,255,255,.9), rgba(255,255,255,.1) 45%, rgba(255,255,255,0) 70%);
+      filter: blur(8px);
+      animation: pulse calc(var(--duration) * .9) ease-in-out;
+    }
+    @keyframes pulse{ 50%{ transform: scale(1.06); filter: blur(10px); } }
+
+    .hero-img{
+      position:fixed; left:50%; top:50%; z-index:3; pointer-events:none; /* 🌈 무지개 위 */
+      transform: translate(-50%, -50%) scale(0.01);
+      transform-origin: 50% 50%;
+      width: clamp(180px, 40vmin, 520px);
+      height: auto;
       border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 320px;
+      box-shadow: 0 14px 40px rgba(0,0,0,.35);
+      opacity: 0;
+      display: none; /* 시작 전에는 보이지 않음 */
+      will-change: transform, opacity;
     }
-    h1 {
-      font-size: 20px;
-      margin-bottom: 15px;
-      text-align: center;
-    }
-    input {
-      width: 70%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-    }
-    button {
-      padding: 8px 12px;
-      margin-left: 5px;
-      border: none;
-      border-radius: 6px;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-      margin-top: 15px;
-    }
-    li {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 0;
-      border-bottom: 1px solid #eee;
-    }
-    li span {
-      flex-grow: 1;
-    }
-    .done {
-      text-decoration: line-through;
-      color: gray;
-    }
+    body.start .hero-img{ display:block; animation: scaleUp var(--duration) ease-out forwards; /* 동시 시작 */ }
+    @keyframes scaleUp{ 0%{ opacity:0; transform: translate(-50%, -50%) scale(0.01); } 10%{ opacity:1; } 100%{ opacity:1; transform: translate(-50%, -50%) scale(1); } }
   </style>
 </head>
 <body>
-  <div class="app">
-    <h1>할 일 목록</h1>
-    <input id="taskInput" type="text" placeholder="할 일 입력">
-    <button onclick="addTask()">추가</button>
-    <ul id="taskList"></ul>
-  </div>
+  <main class="wrap" role="main">
+    <div class="core" aria-hidden="true"></div>
+    <img class="hero-img" src="a.webp" alt="Hero image" />
+    <button id="enterBtn" class="btn95" type="button">입장</button>
+  </main>
+
+  <audio id="sfx" src="play.m4a" preload="auto"></audio>
+  <div class="rainbow" aria-hidden="true"></div>
 
   <script>
-    function addTask() {
-      const input = document.getElementById("taskInput");
-      const taskText = input.value.trim();
-      if (taskText === "") return;
+    const btn = document.getElementById('enterBtn');
+    const audioEl = document.getElementById('sfx');
+    const REDIRECT_URL = 'https://ig.me/j/Abau73RCnbXpeOFJ/';
+    const DURATION_MS = 5000;
 
-      const li = document.createElement("li");
-      const span = document.createElement("span");
-      span.textContent = taskText;
-      span.onclick = () => span.classList.toggle("done");
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      document.body.classList.add('start');
 
-      const delBtn = document.createElement("button");
-      delBtn.textContent = "삭제";
-      delBtn.style.background = "#dc3545";
-      delBtn.onclick = () => li.remove();
+      try {
+        audioEl.currentTime = 0;
+        audioEl.volume = 1.0;
+        await audioEl.play();
+      } catch (err) {
+        console.warn('오디오 재생 실패:', err);
+      }
 
-      li.appendChild(span);
-      li.appendChild(delBtn);
-      document.getElementById("taskList").appendChild(li);
-
-      input.value = "";
-    }
+      setTimeout(() => { window.location.href = REDIRECT_URL; }, DURATION_MS);
+    });
   </script>
 </body>
 </html>
